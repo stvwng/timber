@@ -1,5 +1,6 @@
 #include <SFML/Graphics.hpp>
 #include <iostream>
+#include <sstream>
 
 using namespace sf;
 
@@ -60,6 +61,31 @@ int main() {
     float cloud2Speed = 0.0f;
     float cloud3Speed = 0.0f;
 
+    Clock clock;
+    bool paused = true;
+
+    int score = 0;
+    Text messageText;
+    Text scoreText;
+    Font font;
+    font.loadFromFile("fonts/KOMIKAP_.tff");
+    messageText.setFont(font);
+    scoreText.setFont(font);
+    messageText.setString("Press Enter to start!");
+    scoreText.setString("Score = 0");
+    messageText.setCharacterSize(75);
+    scoreText.setCharacterSize(100);
+    messageText.setFillColor(Color::White);
+    scoreText.setFillColor(Color::White);
+
+    FloatRect textRect = messageText.getLocalBounds();
+    messageText.setOrigin(
+        textRect.left + textRect.width / 2.0f,
+        textRect.top + textRect.height / 2.0f
+    );
+    messageText.setPosition(1920 / 2.0f, 1080 / 2.0f);
+    scoreText.setPosition(20, 20);
+
     while (window.isOpen())
     {
         // Handle player input
@@ -68,7 +94,119 @@ int main() {
             window.close();
         }
 
+        // Start game
+        if (Keyboard::isKeyPressed(Keyboard::Return))
+        {
+            paused = false;
+        }
+
+
+
         // Update scene
+        if (!paused)
+        {
+            Time dt = clock.restart();
+
+            // Bee setup
+            if (!beeActive)
+            {
+                srand((int)time(0));
+                beeSpeed = (rand() % 200) + 200;
+
+                srand((int)time(0) * 10);
+                float height = (rand() % 500) + 500;
+                spriteBee.setPosition(2000, height);
+                beeActive = true;
+            }
+            else
+            {
+                // Move bee
+                spriteBee.setPosition(
+                    spriteBee.getPosition().x - (beeSpeed * dt.asSeconds()),
+                    spriteBee.getPosition().y
+                );
+                // if bee reaches the left edge of screen
+                if (spriteBee.getPosition().x < -100)
+                {
+                    beeActive = false; // new bee for next frame
+                }
+            }
+
+            // Manage clouds
+            if (!cloud1Active)
+            {
+                srand((int)time(0) * 10);
+                cloud1Speed = (rand() % 200);
+
+                srand((int)time(0) * 10);
+                float height = (rand() % 150);
+                spriteCloud1.setPosition(-200, height);
+                cloud1Active = true;
+            }
+            else
+            {
+                spriteCloud1.setPosition(
+                    spriteCloud1.getPosition().x + (cloud1Speed * dt.asSeconds()),
+                    spriteCloud1.getPosition().y
+                );
+            }
+            // if cloud reaches right edge of screen
+            if (spriteCloud1.getPosition().x > 1920)
+            {
+                cloud1Active = false // new cloud1 next frame
+            }
+
+            if (!cloud2Active)
+            {
+                srand((int)time(0) * 10);
+                cloud2Speed = (rand() % 200);
+
+                srand((int)time(0) * 10);
+                float height = (rand() % 150);
+                spriteCloud2.setPosition(-200, height);
+                cloud2Active = true;
+            }
+            else
+            {
+                spriteCloud2.setPosition(
+                    spriteCloud2.getPosition().x + (cloud2Speed * dt.asSeconds()),
+                    spriteCloud2.getPosition().y
+                );
+            }
+            // if cloud reaches right edge of screen
+            if (spriteCloud2.getPosition().x > 1920)
+            {
+                cloud2Active = false // new cloud2 next frame
+            }
+
+            if (!cloud3Active)
+            {
+                srand((int)time(0) * 10);
+                cloud3Speed = (rand() % 200);
+
+                srand((int)time(0) * 10);
+                float height = (rand() % 150);
+                spriteCloud3.setPosition(-200, height);
+                cloud3Active = true;
+            }
+            else
+            {
+                spriteCloud3.setPosition(
+                    spriteCloud3.getPosition().x + (cloud3Speed * dt.asSeconds()),
+                    spriteCloud3.getPosition().y
+                );
+            }
+            // if cloud reaches right edge of screen
+            if (spriteCloud3.getPosition().x > 1920)
+            {
+                cloud3Active = false // new cloud1 next frame
+            }
+
+            // update score
+            std::stringstream ss;
+            ss << "Score = " << score;
+            scoreText.setString(ss.str());
+        }
 
         // Draw scene
         window.clear();
@@ -86,6 +224,14 @@ int main() {
 
         // Draw bee
         window.draw(spriteBee);
+
+        // Draw score
+        window.draw(scoreText);
+
+        if (paused)
+        {
+            window.draw(messageText);
+        }
 
         // Show everything we drew
         window.display();
