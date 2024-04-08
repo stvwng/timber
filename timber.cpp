@@ -116,13 +116,6 @@ int main() {
         branches[i].setOrigin(220, 20);
     }
 
-    // delete later
-    updateBranches(1);
-    updateBranches(2);
-    updateBranches(3);
-    updateBranches(4);
-    updateBranches(5);
-
     while (window.isOpen())
     {
         // Handle player input
