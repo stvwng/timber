@@ -4,6 +4,14 @@
 
 using namespace sf;
 
+void updateBranches(int seed);
+const int NUM_BRANCHES = 6;
+Sprite branches[NUM_BRANCHES];
+
+// where is the player?
+enum class side { LEFT, RIGHT, NONE};
+side branchPositions[NUM_BRANCHES];
+
 int main() {
     // Create a video mode object
     VideoMode vm(1920, 1080);
@@ -97,6 +105,23 @@ int main() {
     );
     messageText.setPosition(1920 / 2.0f, 1080 / 2.0f);
     scoreText.setPosition(20, 20);
+
+    // prepare branches
+    Texture textureBranch;
+    textureBranch.loadFromFile("graphics/branch.png");
+    for (int i = 0; i < NUM_BRANCHES; i++)
+    {
+        branches[i].setTexture(textureBranch);
+        branches[i].setPosition(-2000, -2000);
+        branches[i].setOrigin(220, 20);
+    }
+
+    // delete later
+    updateBranches(1);
+    updateBranches(2);
+    updateBranches(3);
+    updateBranches(4);
+    updateBranches(5);
 
     while (window.isOpen())
     {
@@ -239,6 +264,26 @@ int main() {
             std::stringstream ss;
             ss << "Score = " << score;
             scoreText.setString(ss.str());
+
+            // update branches
+            for (int i = 0; i < NUM_BRANCHES; i++)
+            {
+                float height = i * 150;
+                if (branchPositions[i] == side::LEFT)
+                {
+                    branches[i].setPosition(610, height); // move sprite to left side
+                    branches[i].setRotation(180); // flip sprite
+                }
+                else if (branchPositions[i] == side::RIGHT)
+                {
+                    branches[i].setPosition(1330, height); // move sprite to right side
+                    branches[i].setRotation(0); // set sprite rotation to normal
+                }
+                else
+                {
+                    branches[i].setPosition(3000, height); // hide branch
+                }
+            }
         }
 
         // Draw scene
@@ -251,6 +296,12 @@ int main() {
         window.draw(spriteCloud1);
         window.draw(spriteCloud2);
         window.draw(spriteCloud3);
+
+        // Draw branches
+        for (int i = 0; i < NUM_BRANCHES; i++)
+        {
+            window.draw(branches[i]);
+        }
 
         // Draw tree
         window.draw(spriteTree);
@@ -274,4 +325,28 @@ int main() {
     }
 
     return 0;
+}
+
+void updateBranches(int seed)
+{
+    // move all branches down one place
+    for (int i = NUM_BRANCHES - 1; i > 0; i--)
+    {
+        branchPositions[i] = branchPositions[i - 1];
+    }
+    
+    // spawn new branch at position 0
+    srand((int)time(0) + seed);
+    int r = (rand() % 5);
+    switch (r) {
+        case 0:
+            branchPositions[0] = side::LEFT;
+            break;
+        case 1:
+            branchPositions[0] = side::RIGHT;
+            break;
+        default:
+            branchPositions[0] = side::NONE;
+            break;
+    }
 }
