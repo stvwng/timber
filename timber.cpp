@@ -80,7 +80,7 @@ int main() {
     Text messageText;
     Text scoreText;
     Font font;
-    font.loadFromFile("fonts/KOMIKAP_.tff");
+    font.loadFromFile("fonts/KOMIKAP_.ttf");
     messageText.setFont(font);
     scoreText.setFont(font);
     messageText.setString("Press Enter to start!");
@@ -186,7 +186,7 @@ int main() {
             // if cloud reaches right edge of screen
             if (spriteCloud1.getPosition().x > 1920)
             {
-                cloud1Active = false // new cloud1 next frame
+                cloud1Active = false; // new cloud1 next frame
             }
 
             if (!cloud2Active)
@@ -209,7 +209,7 @@ int main() {
             // if cloud reaches right edge of screen
             if (spriteCloud2.getPosition().x > 1920)
             {
-                cloud2Active = false // new cloud2 next frame
+                cloud2Active = false; // new cloud2 next frame
             }
 
             if (!cloud3Active)
@@ -232,7 +232,7 @@ int main() {
             // if cloud reaches right edge of screen
             if (spriteCloud3.getPosition().x > 1920)
             {
-                cloud3Active = false // new cloud1 next frame
+                cloud3Active = false; // new cloud1 next frame
             }
 
             // update score
