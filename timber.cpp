@@ -37,7 +37,7 @@ int main() {
     textureBee.loadFromFile("graphics/bee.png");
     Sprite spriteBee;
     spriteBee.setTexture(textureBee);
-    spriteBee.setPosition(0, 800);
+    spriteBee.setPosition(400, 200);
     bool beeActive = false;
     float beeSpeed = 0.0f;
 
@@ -51,8 +51,8 @@ int main() {
     spriteCloud2.setTexture(textureCloud);
     spriteCloud3.setTexture(textureCloud);
     spriteCloud1.setPosition(0,0);
-    spriteCloud2.setPosition(0,250);
-    spriteCloud3.setPosition(0, 500);
+    spriteCloud2.setPosition(0,150);
+    spriteCloud3.setPosition(0,300);
     bool cloud1Active = false;
     bool cloud2Active = false;
     bool cloud3Active = false;
