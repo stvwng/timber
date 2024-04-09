@@ -1,6 +1,6 @@
-#include <SFML/Graphics.hpp>
-#include <iostream>
 #include <sstream>
+#include <SFML/Audio.hpp>
+#include <SFML/Graphics.hpp>
 
 using namespace sf;
 
@@ -116,9 +116,80 @@ int main() {
         branches[i].setOrigin(220, 20);
     }
 
+    // prepare player
+    Texture texturePlayer;
+    texturePlayer.loadFromFile("graphics/player.png");
+    Sprite spritePlayer;
+    spritePlayer.setTexture(texturePlayer);
+    spritePlayer.setPosition(580, 720);
+    side playerSide = side::LEFT;
+
+    // prepare gravestone
+    Texture textureRIP;
+    textureRIP.loadFromFile("graphics/rip.png");
+    Sprite spriteRIP;
+    spriteRIP.setTexture(textureRIP);
+    spriteRIP.setPosition(600, 860);
+
+    // prepare axe
+    Texture textureAxe;
+    textureAxe.loadFromFile("graphics/axe.png");
+    Sprite spriteAxe;
+    spriteAxe.setTexture(textureAxe);
+    spriteAxe.setPosition(700, 830);
+    // line up axe with tree
+    const float AXE_POSITION_LEFT = 700;
+    const float AXE_POSITION_RIGHT = 1075;
+
+    // prepare log
+    Texture textureLog;
+    textureLog.loadFromFile("graphics/log.png");
+    Sprite spriteLog;
+    spriteLog.setTexture(textureLog);
+    spriteLog.setPosition(810, 720);
+    bool logActive = false;
+    float logSpeedX = 1000;
+    float logSpeedY = -1500;
+
+    // control player input
+    bool acceptInput = false;
+
+    // Prepare sounds
+    // Player chops sound
+    SoundBuffer chopBuffer; // SoundBuffer object loads sound .wav file into RAM
+    // this class holds the actual audio data from the sound
+    chopBuffer.loadFromFile("sound/chop.wav");
+    Sound chop;
+    chop.setBuffer(chopBuffer); // associate sound object with SoundBuffer object
+    // so we can call the play function of the sound object 
+
+    // sound for player death
+    SoundBuffer deathBuffer;
+    deathBuffer.loadFromFile("sound/death.wav");
+    Sound death;
+    death.setBuffer(deathBuffer);
+
+    // sound for out of time
+    SoundBuffer ootBuffer;
+    ootBuffer.loadFromFile("sound/out_of_time.wav");
+    Sound outOfTime;
+    outOfTime.setBuffer(ootBuffer);
+
     while (window.isOpen())
     {
         // Handle player input
+        Event event;
+        while (window.pollEvent(event))
+        {
+            if (event.type == Event::KeyReleased && !paused)
+            {
+                // listen for key presses again
+                acceptInput = true;
+                // hide axe
+                spriteAxe.setPosition(2000, spriteAxe.getPosition().y);
+            }
+        }
+
         if (Keyboard::isKeyPressed(Keyboard::Escape))
         {
             window.close();
@@ -129,10 +200,63 @@ int main() {
         {
             paused = false;
             score = 0;
-            timeRemaining = 6;
+            timeRemaining = 600;
+
+            // make branches disappear, starting in 2nd position
+            for (int i = 1; i < NUM_BRANCHES; i++)
+            {
+                branchPositions[i] = side::NONE;
+            }
+
+            // hide gravestone
+            spriteRIP.setPosition(675, 2000);
+
+            // position player
+            spritePlayer.setPosition(580, 720);
+
+            acceptInput = true;
         }
 
+        if (acceptInput)
+        {
+            // handle right cursor key
+            if (Keyboard::isKeyPressed(Keyboard::Right))
+            {
+                playerSide = side::RIGHT;
+                score++;
+                timeRemaining += (2 / score) + .15;
+                spriteAxe.setPosition(
+                    AXE_POSITION_RIGHT,
+                    spriteAxe.getPosition().y
+                );
+                spritePlayer.setPosition(1200, 720);
+                updateBranches(score);
+                spriteLog.setPosition(810, 720);
+                logSpeedX = -5000;
+                logActive = true;
+                acceptInput = false;
+                chop.play();
+            }
 
+            // handle left cursor key
+            if (Keyboard::isKeyPressed(Keyboard::Left))
+            {
+                playerSide = side::LEFT;
+                score++;
+                timeRemaining += (2 / score) + .15;
+                spriteAxe.setPosition(
+                    AXE_POSITION_LEFT,
+                    spriteAxe.getPosition().y
+                );
+                spritePlayer.setPosition(580, 720);
+                updateBranches(score);
+                spriteLog.setPosition(810, 720);
+                logSpeedX = 5000;
+                logActive = true;
+                acceptInput = false;
+                chop.play();
+            }
+        }
 
         // Update scene
         if (!paused)
@@ -156,6 +280,7 @@ int main() {
                     textRect.top + textRect.height / 2.0f
                 );
                 messageText.setPosition(1920 / 2.0f, 1080 / 2.0f);
+                outOfTime.play();
             }
 
             // Bee setup
@@ -277,6 +402,38 @@ int main() {
                     branches[i].setPosition(3000, height); // hide branch
                 }
             }
+
+            // handle log
+            if (logActive)
+            {
+                spriteLog.setPosition(
+                    spriteLog.getPosition().x + (logSpeedX * dt.asSeconds()),
+                    spriteLog.getPosition().y + (logSpeedY * dt.asSeconds())
+                );
+                // if log reaches right edge
+                if (spriteLog.getPosition().x < -100 || spriteLog.getPosition().x > 2000)
+                {
+                    logActive = false;
+                    spriteLog.setPosition(810, 720);
+                }
+            }
+
+            // is the player dead?
+            if (branchPositions[5] == playerSide)
+            {
+                paused = true;
+                acceptInput = false;
+                spriteRIP.setPosition(525, 760); // draw gravestone
+                spritePlayer.setPosition(2000, 660); // hide player
+                messageText.setString("SQUISHED!!!");
+                FloatRect textRect = messageText.getLocalBounds();
+                messageText.setOrigin(
+                    textRect.left + textRect.width / 2.0f,
+                    textRect.top + textRect.height / 2.0f
+                );
+                messageText.setPosition(1920 / 2.0f, 1080 / 2.0f);
+                death.play();
+            }
         }
 
         // Draw scene
@@ -298,6 +455,18 @@ int main() {
 
         // Draw tree
         window.draw(spriteTree);
+
+        // Draw player
+        window.draw(spritePlayer);
+
+        // Draw axe
+        window.draw(spriteAxe);
+
+        // Draw log
+        window.draw(spriteLog);
+
+        // Draw gravestone
+        window.draw(spriteRIP);
 
         // Draw bee
         window.draw(spriteBee);
